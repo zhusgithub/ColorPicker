@@ -23,6 +23,7 @@ public class ColorPlateView extends View {
     private Paint mPaint,pointPaint;
     private LinearGradient mShaderVertical;
     private final float[] HSV = {1.f,1.f,1.f};
+    private final float[] selectedHSV = {1.f,1.f,1.f};
 
     private int width,height;
     private int pointX,pointY;
@@ -44,6 +45,7 @@ public class ColorPlateView extends View {
         pointPaint.setAntiAlias(true);
         pointPaint.setColor(Color.BLACK);
         pointPaint.setStrokeWidth(3);
+        pointPaint.setStyle(Paint.Style.STROKE);
     }
 
     @Override
@@ -73,6 +75,7 @@ public class ColorPlateView extends View {
     }
 
     private void drawPoint(Canvas canvas) {
+        canvas.drawCircle(pointX,pointY,10,pointPaint);
         canvas.drawPoint(pointX,pointY,pointPaint);
     }
 
@@ -82,6 +85,7 @@ public class ColorPlateView extends View {
      */
     public void setHue(float hue){
         HSV[0] = hue;
+        returnCurrentColor();
         invalidate();
     }
 
@@ -94,6 +98,7 @@ public class ColorPlateView extends View {
             case MotionEvent.ACTION_MOVE:
                 pointX = x;
                 pointY = y;
+                returnCurrentColor();
                 invalidate();
                 break;
             case MotionEvent.ACTION_DOWN:
@@ -101,8 +106,28 @@ public class ColorPlateView extends View {
             case MotionEvent.ACTION_UP:
                 break;
         }
-
         return super.onTouchEvent(event);
+    }
+
+
+    public interface ColorChangedListener{
+        void onRGBChanged(int color);
+    }
+
+    ColorChangedListener colorChangedListener;
+
+    public void registerColorChangedListener(ColorChangedListener colorChangedListener){
+        this.colorChangedListener = colorChangedListener;
+    }
+
+    private void returnCurrentColor(){
+        selectedHSV[0] = HSV[0];
+        selectedHSV[1] = (float) pointX/width;
+        selectedHSV[2] = (float) (height -pointY)/height;
+        int rgb = Color.HSVToColor(selectedHSV);
+        if(colorChangedListener != null){
+            colorChangedListener.onRGBChanged(rgb);
+        }
     }
 
 }

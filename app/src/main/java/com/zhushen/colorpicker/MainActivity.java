@@ -11,7 +11,7 @@ import com.zhushen.colorpicker.view.ColorPickerView;
 import com.zhushen.colorpicker.view.ColorPlateView;
 import com.zhushen.colorpicker.view.HSVPicker;
 
-public class MainActivity extends AppCompatActivity implements HSVPicker.ColorChange {
+public class MainActivity extends AppCompatActivity implements HSVPicker.ColorChange, ColorPlateView.ColorChangedListener {
     private TextView textView;
     private View view;
 
@@ -37,17 +37,27 @@ public class MainActivity extends AppCompatActivity implements HSVPicker.ColorCh
         hsvPicker.registerColorChangeListener(this);
 
         colorPlateView = (ColorPlateView)findViewById(R.id.color_plate_view);
+        colorPlateView.registerColorChangedListener(this);
     }
 
     @Override
     public void onColorChanged(int color) {
-        textView.setTextColor(color);
-        view.setBackgroundColor(color);
 
     }
 
     @Override
     public void onhueChanged(float hue) {
         colorPlateView.setHue(hue);
+    }
+
+    @Override
+    public void onRGBChanged(int color) {
+        textView.setTextColor(color);
+        view.setBackgroundColor(color);
+        Log.e("zhushen","color = " + color);
+
+        String hexCode = "";
+        hexCode = String.format("#%06X", Integer.valueOf(16777215 & color));
+        textView.setText(hexCode);
     }
 }
