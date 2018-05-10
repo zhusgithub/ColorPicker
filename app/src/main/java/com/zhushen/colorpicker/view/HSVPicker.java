@@ -99,19 +99,54 @@ public class HSVPicker extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        int x=(int) event.getX();
         int y= (int) event.getY();
+        if(y<offset){
+            y =offset;
+        }
+        if(y>height-offset){
+            y = height-offset;
+        }
         switch (event.getAction()){
-            case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "onTouchEvent: down");
-                break;
             case MotionEvent.ACTION_MOVE:
-                Log.d(TAG, "onTouchEvent: move");
+                moveCursor(y);
+                break;
+            case MotionEvent.ACTION_DOWN:
+                moveCursor(y);
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d(TAG, "onTouchEvent: up");
+                moveCursor(y);
                 break;
         }
         return super.onTouchEvent(event);
     }
+
+    private void moveCursor(int y){
+        position = y-offset;
+        calcColor();
+        invalidate();
+    }
+
+    private void calcColor(){
+        hsv[0] = 360 - (float)position/(height - offset *2)*360;
+        if(colorChange!=null){
+            colorChange.onhueChanged(hsv[0]);
+        }
+        int rgb = Color.HSVToColor(hsv);
+        if(colorChange!=null){
+            colorChange.onColorChanged(rgb);
+        }
+    }
+
+
+    public interface ColorChange{
+        void onColorChanged(int color);
+        void onhueChanged(float hue);
+    }
+
+    public ColorChange colorChange;
+
+    public void registerColorChangeListener(ColorChange colorChange){
+        this.colorChange = colorChange;
+    }
+
 }

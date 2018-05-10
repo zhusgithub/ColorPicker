@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Shader;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 /**
@@ -19,9 +20,12 @@ import android.view.View;
 
 public class ColorPlateView extends View {
     private static final String TAG = ColorPlateView.class.getName();
-    private Paint mPaint;
+    private Paint mPaint,pointPaint;
     private LinearGradient mShaderVertical;
     private final float[] HSV = {1.f,1.f,1.f};
+
+    private int width,height;
+    private int pointX,pointY;
 
     public ColorPlateView(Context context, AttributeSet attrs) {
         this(context, attrs,0);
@@ -32,8 +36,25 @@ public class ColorPlateView extends View {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
-
+        init();
     }
+
+    private void init() {
+        pointPaint = new Paint();
+        pointPaint.setAntiAlias(true);
+        pointPaint.setColor(Color.BLACK);
+        pointPaint.setStrokeWidth(3);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        width = getMeasuredWidth();
+        height = getMeasuredHeight();
+        pointY = 0;
+        pointX = width;
+    }
+
     @SuppressLint("DrawAllocation")
     @Override
     protected void onDraw(Canvas canvas) {
@@ -47,6 +68,12 @@ public class ColorPlateView extends View {
         ComposeShader composeShader = new ComposeShader(mShaderVertical,shaderHorizontal,PorterDuff.Mode.MULTIPLY );//混合渐变
         mPaint.setShader(composeShader);
         canvas.drawRect(0.f,0.f,this.getMeasuredWidth(),this.getMeasuredHeight(),mPaint);
+
+        drawPoint(canvas);
+    }
+
+    private void drawPoint(Canvas canvas) {
+        canvas.drawPoint(pointX,pointY,pointPaint);
     }
 
     /**
@@ -57,4 +84,25 @@ public class ColorPlateView extends View {
         HSV[0] = hue;
         invalidate();
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int x = (int) event.getX();
+        int y = (int) event.getY();
+
+        switch (event.getAction()){
+            case MotionEvent.ACTION_MOVE:
+                pointX = x;
+                pointY = y;
+                invalidate();
+                break;
+            case MotionEvent.ACTION_DOWN:
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+        }
+
+        return super.onTouchEvent(event);
+    }
+
 }
